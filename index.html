@@ -1195,26 +1195,40 @@
   let brushSize = 6;
   let isRainbow = false;
   let hue = 0;
+  let canvasReady = false;
+  let dpr = window.devicePixelRatio || 1;
 
-  function resizeCanvas() {
+  function initCanvas() {
     const rect = canvas.getBoundingClientRect();
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    canvas.width = rect.width * 2;
-    canvas.height = rect.height * 2;
-    ctx.scale(2, 2);
+    if (rect.width === 0) return;
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
     ctx.fillStyle = '#FFFBF7';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Draw faint paw watermark
+    ctx.fillRect(0, 0, rect.width, rect.height);
     ctx.font = '60px serif';
     ctx.fillStyle = 'rgba(249,168,201,0.06)';
     ctx.textAlign = 'center';
-    ctx.fillText('🐾', rect.width / 2, rect.height / 2);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✨', rect.width / 2, rect.height / 2);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    canvasReady = true;
   }
 
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  // Defer canvas init until content is visible
+  const canvasObserver = new MutationObserver(() => {
+    if (document.getElementById('mainContent').classList.contains('visible') && !canvasReady) {
+      setTimeout(initCanvas, 100);
+    }
+  });
+  canvasObserver.observe(document.getElementById('mainContent'), { attributes: true });
+
+  window.addEventListener('resize', () => {
+    if (canvasReady) initCanvas();
+  });
 
   const colors = ['#F9A8C9','#E8567F','#FECDB2','#F0C75E','#A8E6CF','#A8D8F0','#D4A5E5','#FF8A80','#4A3040','#FFFFFF'];
   const palette = document.getElementById('colorPalette');
@@ -1292,13 +1306,14 @@
   }
 
   function clearCanvas() {
+    const rect = canvas.getBoundingClientRect();
     ctx.fillStyle = '#FFFBF7';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, rect.width, rect.height);
     ctx.font = '60px serif';
     ctx.fillStyle = 'rgba(249,168,201,0.06)';
     ctx.textAlign = 'center';
-    const rect = canvas.getBoundingClientRect();
-    ctx.fillText('🐾', rect.width / 2, rect.height / 2);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✨', rect.width / 2, rect.height / 2);
   }
 
   // ===== WISHES WALL =====
